@@ -1,0 +1,35 @@
+#!/bin/bash
+#
+# gitbugz Starts/stop the "gitbugz" daemon
+#
+# chkconfig:   345 95 5
+# description: Gitbugz integration server.
+# Listens for pushed commits and spawns edits at fogbugz-on-demand.
+
+DAEMON=/opt/gitbugz/gitbugz.py
+FOLDER=/opt/gitbugz
+ARGS="defaults.cfg"
+PIDFILE=/opt/gitbugz/gitbugz.pid
+
+case "$1" in
+  start)
+    echo "Starting server"
+    /sbin/start-stop-daemon --start --pidfile $PIDFILE \
+        --user www-data --group www-data \
+        -b --make-pidfile \
+        -d $FOLDER \
+        --chuid www-data \
+        --exec $DAEMON $ARGS
+    ;;
+  stop)
+    echo "Stopping server"
+    /sbin/start-stop-daemon --stop --pidfile $PIDFILE --verbose
+    ;;
+  *)
+    echo "Usage: $0 {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0
+

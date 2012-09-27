@@ -1,0 +1,16 @@
+sudo mkdir -p /data/gitbugz
+cd /opt
+sudo ln -s /data/gitbugz
+
+sudo yum install python-zmq.x86_64 python-pip
+
+sudo pip-python install fogbugz
+sudo easy_install argparse
+
+cd /home/git/repositories/quasar.git/hooks
+sudo ls -s /opt/gitbugz/post-receive
+sudo ls -s /opt/gitbugz/post-receive-gitbugz
+
+sudo cp /opt/gitbugz/gitbugz /etc/init.d/
+
+sudo service gitbugz start

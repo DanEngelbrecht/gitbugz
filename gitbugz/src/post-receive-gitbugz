@@ -1,0 +1,8 @@
+#!/bin/sh
+pwd
+cd /opt/gitbugz
+while read oldrev newrev refname
+do
+  echo "Sending changes from " $oldrev " to " $newrev " to Gitbugz in background"
+  python gitbugzpush.py $oldrev $newrev $refname
+done
