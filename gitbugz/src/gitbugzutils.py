@@ -10,8 +10,9 @@ from fogbugz import FogBugz
 
 def getFollowingCaseNumbers(caseString):
     result = set()
+    caseString = caseString.lstrip(' ,:;#')
     while len(caseString) > 0:
-        caseString = caseString.lstrip(' ,:;#')
+        caseString = caseString.lstrip(' ,#+&')
         numpos = 0
         while (numpos < len(caseString)) and (string.digits.find(caseString[numpos]) != -1):
             numpos = numpos + 1
