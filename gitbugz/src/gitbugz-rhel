@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+# gitbugz Starts/stop the "gitbugz" daemon
+#
+# chkconfig:   345 95 5
+# description: Gitbugz integration server.
+# Listens for pushed commits and spawns edits at fogbugz-on-demand.
+# Author: Michael Sjölund
+
+# source function library
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+
+prog=gitbugz
+DAEMON=/opt/gitbugz/gitbugz.py
+ARGS="defaults.cfg"
+PIDFILE=/var/run/gitbugz.pid
+#FOLDER=/opt/gitbugz
+
+lockfile=/var/lock/subsys/$prog
+
+start() {
+	[ -x $exec ] || exit 5
+
+        echo -n $"Starting $prog: "
+        #daemon --pidfile="$PIDFILE" "$DAEMON $ARGS"
+        daemon --pidfile="$PIDFILE" "nohup $DAEMON $ARGS >/dev/null 2>&1 &"
+        RETVAL=$?
+        PID=`pidof -x $DAEMON`
+        echo
+        [ $RETVAL -eq 0 ] && touch $lockfile
+        echo $PID > $PIDFILE
+        return $RETVAL
+}
+stop() {
+        echo -n $"Shutting down $prog: "
+        killproc -p "$PIDFILE" $exec
+        RETVAL=$?
+        echo
+        [ $RETVAL -eq 0 ] && rm -f $lockfile
+        return $RETVAL
+}
+
+rhstatus() {
+        status -p "$PIDFILE" -l $prog $DAEMON
+}
+restart() {
+        stop
+        start
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart)
+        restart
+        ;;
+  status)
+        rhstatus
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|restart|status}"
+        exit 2
+esac
+
+exit $?

@@ -5,6 +5,9 @@ import string
 import logging
 from fogbugz import FogBugz
 
+#import argparse
+#import re
+
 def getFollowingCaseNumbers(caseString):
     result = set()
     while len(caseString) > 0:
@@ -49,9 +52,9 @@ def hasChange(fb, case, change):
                     return True
     return False
 
-def getChangeDescription(repopath, change):
+def getChangeDescription(repopath, reponame, change):
 #    olddir = os.getcwd
-    os.chdir(repopath)
+    os.chdir(repopath + reponame)
 
     getchange = "git show -s --pretty=medium " + change
     changeIO = os.popen(getchange,"r")
@@ -68,11 +71,11 @@ def getChangeDescription(repopath, change):
    
     return changeDescription
 
-def getChanges(repopath, oldrev, newrev):
-    logging.info('Fetching changes: ' + repopath + ' ' + oldrev + '..' + newrev)
+def getChanges(repopath, reponame, oldrev, newrev):
+    logging.info('Fetching changes: ' + repopath + reponame + ' ' + oldrev + '..' + newrev)
 
 #    olddir = os.getcwd()
-    os.chdir(repopath)
+    os.chdir(repopath + reponame)
 
     gitrevscmd = "git rev-list " + oldrev + ".." + newrev
     changes = set()
@@ -123,6 +126,7 @@ def getChangeText(changeDescription, refname):
 #            break
         changeText = changeText + line + '\n'
     changeText = changeText + "\nBranch: " + refname
+
     return changeText
 
 def updateFogbugzCases(site, username, password, ordered_changes, changemap, casemap, releasenotesmap):
@@ -156,9 +160,9 @@ def updateFogbugzCases(site, username, password, ordered_changes, changemap, cas
 
     fb.logoff()
 
-def editCases(site, username, password, oldrev, newrev, repopath, refname):
+def editCases(site, username, password, oldrev, newrev, repopath, reponame, refname, gitweburl):
 
-    ordered_changes = getChanges(repopath, oldrev, newrev)
+    ordered_changes = getChanges(repopath, reponame, oldrev, newrev)
 
     if len(ordered_changes) == 0:
         logging.info('No changes found.')
@@ -171,13 +175,21 @@ def editCases(site, username, password, oldrev, newrev, repopath, refname):
     changemap = {'':''}
     casemap = {'':''}
     releasenotesmap = {'':''}
-
+	
     logging.info('Fetching change descriptions')
     for change in ordered_changes:
-        changeDescription = getChangeDescription(repopath, change)
+        changeDescription = getChangeDescription(repopath, reponame, change)
         cases = getCaseNumbers(changeDescription)
 #        releasenotes = getReleaseNotes(changeDescription)
         changetext = getChangeText(changeDescription, refname)
+
+        if len(gitweburl) > 0:
+            changetext = changetext + "\n\n"
+            changetext = changetext + 'Commit: ' + gitweburl + '/gitweb/?p=' + reponame + ';a=commit;h=' + change
+
+            changetext = changetext + "\n\n"
+            changetext = changetext + 'Branch: ' + gitweburl + '/gitweb/?p=' + reponame + ';a=shortlog;h=' + refname
+
         changemap[change] = changetext
         casemap[change] = cases
 #        releasenotesmap[change] = releasenotes
@@ -195,6 +207,7 @@ parser.add_argument('password', help='the password to use when logging in to fog
 parser.add_argument('startrev', help='the first git commit (exclusive)')
 parser.add_argument('endrev', help='the last git commit (inclusive)')
 parser.add_argument('repopath', help='the path to the git repo')
+parser.add_argument('reponame', help='the name of the git repo')
 parser.add_argument('refname', help='the ref-name for the branch in git repo')
 
 args=parser.parse_args()
@@ -208,11 +221,11 @@ if oldrev == "0000000000000000000000000000000000000000":
     oldrev = ""
 newrev = args.endrev
 repopath = args.repopath
+reponame = args.reponame
 refname = args.refname
 
-editCases(site, username, password, oldrev, newrev, repopath, refname)
+editCases(site, username, password, oldrev, newrev, repopath, reponame, refname)
 
 logging.info('Done')
 
 """
-s

@@ -36,7 +36,7 @@ socket = context.socket(zmq.PUSH) #REQ)
 connectaddress = "tcp://localhost:" + serverport
 socket.connect (connectaddress)
 
-# Wait up to one second. If the server does not pick up our message (or is offline) this update will not be applied to fogbugz
+# Wait up to five seconds. If the server does not pick up our message (or is offline) this update will not be applied to fogbugz
 socket.LINGER = 1000
 
 print "Sending request..."
@@ -50,3 +50,4 @@ except zmq.ZMQError:
     print "Gitbugz process not running"
 
 socket.close()
+

@@ -1,2 +1,5 @@
 sudo /etc/init.d/gitbugz stop
 sudo /etc/init.d/gitbugz start
+
+chmod +x gitbugz
+
