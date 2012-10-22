@@ -48,7 +48,7 @@ def hasChange(fb, case, change):
         for event in events:
             ss = event.findAll('s')
             for s in ss:
-                eventDescription = s.prettify()
+                eventDescription = s.prettify().decode('UTF8')
                 if eventDescription.find(change) != -1:
                     return True
     return False
@@ -80,6 +80,9 @@ def getChanges(repopath, reponame, oldrev, newrev):
 
     gitrevscmd = "git rev-list " + oldrev + ".." + newrev
     cmdOutput = getCommandOutput(repopath + reponame, gitrevscmd)
+
+    changes = set()
+    ordered_changes = list()
 
     for line in cmdOutput:
         if (line in changes) == False :
