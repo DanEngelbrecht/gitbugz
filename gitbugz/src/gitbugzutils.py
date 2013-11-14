@@ -57,7 +57,7 @@ def getChangeDescription(repopath, reponame, change):
 #    olddir = os.getcwd
     os.chdir(repopath + reponame)
 
-    getchange = "git show -s --pretty=medium " + change
+    getchange = "git show -s --pretty=medium --show-notes" + change
     changeIO = os.popen(getchange,"r")
     logging.info('    Change description for commit ' + change)
     changeDescription = list()
