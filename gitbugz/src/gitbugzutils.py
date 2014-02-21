@@ -48,53 +48,51 @@ def hasChange(fb, case, change):
         for event in events:
             ss = event.findAll('s')
             for s in ss:
-                eventDescription = s.prettify()
+                eventDescription = s.prettify().decode('UTF8')
                 if eventDescription.find(change) != -1:
                     return True
     return False
 
-def getChangeDescription(repopath, reponame, change):
-#    olddir = os.getcwd
-    os.chdir(repopath + reponame)
-
-    getchange = "git show -s --pretty=medium --show-notes" + change
-    changeIO = os.popen(getchange,"r")
-    logging.info('    Change description for commit ' + change)
-    changeDescription = list()
+def getCommandOutput(folder, command):
+    os.chdir(folder)
+    changeIO = os.popen(command,"r")
+    logging.info('    Reading output for command: ' + command)
+    result = list()	
     while 1:
-        line = changeIO.readline()
+        line = changeIO.readline().decode('UTF8')
         if not line: break
         line = line.strip('\n')
         logging.info('        ' + line)
-        changeDescription.append(line)
+        result.append(line)
 
-#   os.chdir(olddir)
-   
-    return changeDescription
+    return result
+	
+def getChangeDescription(repopath, reponame, change):
+    logging.info('Getting change description: ' + repopath + reponame + ' ' + change)
+
+    getchange = "git show -s --pretty=medium --show-notes " + change
+    cmdOutput = getCommandOutput(repopath + reponame, getchange)
+
+    return cmdOutput
 
 def getChanges(repopath, reponame, oldrev, newrev):
     logging.info('Fetching changes: ' + repopath + reponame + ' ' + oldrev + '..' + newrev)
 
-#    olddir = os.getcwd()
-    os.chdir(repopath + reponame)
-
     gitrevscmd = "git rev-list " + oldrev + ".." + newrev
+    cmdOutput = getCommandOutput(repopath + reponame, gitrevscmd)
+
     changes = set()
     ordered_changes = list()
-    gitrevsIO = os.popen(gitrevscmd,"r")
-    while 1:
-        line = gitrevsIO.readline()
-        if not line: break
-        line = line.strip('\n')
-        logging.info('    Found commit ' + line)
+
+    for line in cmdOutput:
         if (line in changes) == False :
+            logging.info('    Found unique commit ' + line)
             changes.add(line)
             # Changes appear in reverse order from change
             ordered_changes.insert(0, line)
 
-#    os.chdir(olddir)
-
     return ordered_changes
+
 """
 def getReleaseNotes(changeDescription):
     releaseNotes = ""
